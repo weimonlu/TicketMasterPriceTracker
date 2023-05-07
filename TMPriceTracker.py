@@ -1,6 +1,6 @@
 import requests
 import json
-from csv import writer
+import csv
 import datetime
 
 
@@ -14,8 +14,13 @@ class Tracker:
         self.file = file
         self.api = api
 
-    def check_entries(self, response):
-        response_dict = json.loads(response.text)
+    def check_entries(self, response_dict):
+        """
+        error handling to ensure that there are values for min and max price
+        :param response_dict: dictionary of the api call from ticketmaster
+        :return: list of elements, which will become the next row in the .csv file
+        """
+
         min_price = ''
         max_price = ''
         try:
@@ -36,26 +41,36 @@ class Tracker:
         return row_list
 
     def add_event(self, event_id):
-        response2 = requests.get(f"https://app.ticketmaster.com/discovery/v2/events/{event_id}?apikey={self.api}")
-        #response_dict2 = json.loads(response2.text)
-        #query2 = response_dict2['priceRanges']
-
-        row_list = self.check_entries(response2)
-
-        # row_list = [response_dict2['id'],
-        #             response_dict2['name'],
-        #             query2[0]['min'],
-        #             query2[0]['max'],
-        #             datetime.datetime.now()]
+        """
+        Update the .csv file with the event
+        :param event_id: event id, used in the get request
+        :return:
+        """
+        response = requests.get(f"https://app.ticketmaster.com/discovery/v2/events/{event_id}?apikey={self.api}")
+        response_dict = json.loads(response.text)
+        row_list = self.check_entries(response_dict)
 
         with open(self.file, 'a') as f_object:
-            writer_object = writer(f_object, delimiter=",")
+            writer_object = csv.writer(f_object, delimiter=",")
             writer_object.writerow(row_list)
             f_object.close()
+
+    def get_event(self, event_id):
+        """
+        Prints out all the events in the tracker that matches the given id
+        :param event_id: event id
+        :return:
+        """
+        with open(self.file, 'r') as f_object:
+            csv_reader = csv.reader(f_object, delimiter=',')
+            for row in csv_reader:
+                if row[0] == event_id:
+                    print(row)
 
 
 tracker = Tracker("TicketMasterTracker.csv", "KbtTMD50liCy9mA6Aeh0eG3EIoGD75xu")
 tracker.add_event("Z7r9jZ1AdO673")
+tracker.get_event("Z7r9jZ1AdO673")
 
 # Ed Sheeran vvG1HZ9KD5yVsh
 # Tegan & Sara Z7r9jZ1AdO673
