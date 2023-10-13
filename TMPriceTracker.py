@@ -11,7 +11,6 @@ class Tracker:
     """
         Tracker adds event information to the given file, which should be a .csv
     """
-    #api = "KbtTMD50liCy9mA6Aeh0eG3EIoGD75xu"
 
     def __init__(self, file, api):
         # hold file and api info
